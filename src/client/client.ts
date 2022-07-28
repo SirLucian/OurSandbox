@@ -107,6 +107,7 @@ let lightsArray = [
     },
     {
         type: 'spot',
+        color: 0xffffff,
         translation: [-38.17, 95.56, -51.88],
         rotation: [-0.15643446504023092, 0, 0, 0.9876883405951378],
         intensity: 0.384,
@@ -127,16 +128,17 @@ lightsArray.forEach((i) => {
     if (i.type == 'spot') {
         light = new THREE.SpotLight(i.Color, i.intensity)
         light.position.set(i.translation[0], i.translation[1], i.translation[2])
-        helper = new THREE.SpotLightHelper(light, 5)
+        helper = new THREE.SpotLightHelper(light)
     }
     if (i.type == 'point') {
-        light = new THREE.PointLight(i.Color, i.intensity)
+        light = new THREE.PointLight(i.Color, i.intensity) 
         light.position.set(i.translation[0], i.translation[1], i.translation[2])
         helper = new THREE.PointLightHelper(light, 5)
     }
-    light = light ? lights.add(light) : null
+    light ? lights.add(light) : null
     helper ? lights.add(helper) : null
 })
+scene.add(lights)
 
 const transformControls = new TransformControls(orbitCamera, renderer.domElement)
 transformControls.enabled = false
@@ -244,7 +246,8 @@ const latheRender = () => {
         lathe.add(cyl)
         lastOuterWall = outerWall
     }
-
+    const scale = 20;
+    lathe.scale.set(scale, scale, scale)
     lathe.rotation.set(0, 0, 4.53)
     scene.add(lathe)
 }
