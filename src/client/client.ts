@@ -10,7 +10,8 @@ import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonCont
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { BufferGeometry } from 'three'
+import { BufferGeometry, Color, EventDispatcher } from 'three'
+import { isMainThread } from 'worker_threads'
 
 const scene = new THREE.Scene()
 
@@ -59,6 +60,83 @@ const controls = new OrbitControls(orbitCamera, renderer.domElement)
 
 // ADD TO THIS ARRAY - Also, please make me a keybinding to cycle through objects so we can move them arround and... we need to be able to store the location of things
 let objects = [cube, camera]
+
+//Lights
+let lightsArray = [
+    {
+        type: 'point',
+        translation: [-31.238074177466043, -77.04772774425008, -10.42891519351398],
+        Color: 0xff75ef,
+        intensity: 0.615,
+    },
+    {
+        type: 'directional',
+        translation: [23.2390798106559, -2.918168273538896, -24.02123297941177],
+        rotation: [
+            -0.6128186576322113, 0.6945839065061901, -0.28257700061689345, 0.24931251152482312,
+        ],
+        Color: 0xff75ef,
+        intensity: 0.513,
+    },
+    {
+        type: 'directional',
+        translation: [24.790311017298276, -88.65452636449864, 26.515379520314966],
+        rotation: [
+            0.08172792545966906, -0.5957586416899301, 0.7915807597084732, -0.10859138046449561,
+        ],
+        Color: 0xff75ef,
+        intensity: 0.384,
+    },
+    {
+        type: 'directional',
+        translation: [24.790311017298276, -106.54721055180511, 26.515379520314966],
+        rotation: [
+            0.0705115418236218, -0.6142032584353462, 0.7808625859815723, -0.08964430607255884,
+        ],
+        Color: 0xff75ef,
+        intensity: 0.384,
+    },
+    {
+        type: 'directional',
+        translation: [-3.3740196139311287, -100.9402752796707, 61.17854158329121],
+        rotation: [
+            -0.008200340410676795, -0.4907948716986974, 0.871114978089208, 0.01455483699828912,
+        ],
+        Color: 0xff75ef,
+        intensity: 0.384,
+    },
+    {
+        type: 'spot',
+        translation: [-38.17, 95.56, -51.88],
+        rotation: [-0.15643446504023092, 0, 0, 0.9876883405951378],
+        intensity: 0.384,
+    },
+]
+
+// Lights
+const lights = new THREE.Group()
+
+lightsArray.forEach((i) => {
+    let helper
+    let light
+    if (i.type == 'directional') {
+        light = new THREE.DirectionalLight(i.Color, i.intensity)
+        light.position.set(i.translation[0], i.translation[1], i.translation[2])
+        helper = new THREE.DirectionalLightHelper(light, 5)
+    }
+    if (i.type == 'spot') {
+        light = new THREE.SpotLight(i.Color, i.intensity)
+        light.position.set(i.translation[0], i.translation[1], i.translation[2])
+        helper = new THREE.SpotLightHelper(light, 5)
+    }
+    if (i.type == 'point') {
+        light = new THREE.PointLight(i.Color, i.intensity)
+        light.position.set(i.translation[0], i.translation[1], i.translation[2])
+        helper = new THREE.PointLightHelper(light, 5)
+    }
+    light = light ? lights.add(light) : null
+    helper ? lights.add(helper) : null
+})
 
 const transformControls = new TransformControls(orbitCamera, renderer.domElement)
 transformControls.enabled = false
