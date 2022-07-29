@@ -8,8 +8,8 @@ import { DragControls } from 'three/examples/jsm/controls/DragControls'
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls'
 import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
+// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { BufferGeometry, Color, EventDispatcher } from 'three'
 import { isMainThread } from 'worker_threads'
 
@@ -30,17 +30,29 @@ const orbitCamera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 8
-orbitCamera.position.z = 4
+camera.position.z = 200
+orbitCamera.position.z = 200
 
 // LOADERS
 // CANT GET IT TO WORK. SIMPLE WHERE SHOULD I REFERENCE THIS SHIT ISSUE
 // Instantiate a loader
-const loader = new GLTFLoader()
+const loader = new OBJLoader()
 // Load a glTF resource
-loader.load('assets/web_n_lights.gltf', (gltfScene: any) => {
-    scene.add(gltfScene.scene)
-})
+loader.load(
+    'TheOneRing.obj',
+    (obj: any) => {
+        scene.add(obj)
+        console.log(obj.children)
+    },
+    function (xhr) {
+        console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+
+    // onError callback
+    function (err) {
+        console.error(err)
+    }
+)
 
 // THE PLAYGROUND
 const renderer = new THREE.WebGLRenderer()
@@ -128,16 +140,34 @@ lightsArray.forEach((i) => {
     if (i.type == 'spot') {
         light = new THREE.SpotLight(i.Color, i.intensity)
         light.position.set(i.translation[0], i.translation[1], i.translation[2])
-        helper = new THREE.SpotLightHelper(light)
+        helper = new THREE.SpotLightHelper(light, 0xff0000)
     }
     if (i.type == 'point') {
-        light = new THREE.PointLight(i.Color, i.intensity) 
+        light = new THREE.PointLight(i.Color, i.intensity)
         light.position.set(i.translation[0], i.translation[1], i.translation[2])
         helper = new THREE.PointLightHelper(light, 5)
     }
     light ? lights.add(light) : null
     helper ? lights.add(helper) : null
 })
+lights.matrixWorld.set(
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    31.238074177466043,
+    69.69992407888408,
+    -4.116219094982355,
+    1
+)
 scene.add(lights)
 
 const transformControls = new TransformControls(orbitCamera, renderer.domElement)
@@ -199,10 +229,10 @@ function onWindowResize() {
 const amount = 24
 let rotMod = 0
 const materialConfig: any = {
-    color: 0xe295ef,
-    flatShading: THREE.SmoothShading,
-    metalness: 0.5,
-    roughness: 0.6,
+    color: 0x9cb6ec,
+    // flatShading: THREE.SmoothShading,
+    // metalness: 0.5,
+    // roughness: 0.6,
 }
 
 // Boilerplate code
@@ -217,19 +247,19 @@ const latheRender = () => {
     const extrudeSettings = {
         depth: 1.5,
         steps: 1,
-        bevelEnabled: false,
-        bevelThickness: 0.1,
-        bevelSegments: 2,
+        bevelEnabled: true,
+        bevelThickness: 0.2,
+        bevelSegments: 3,
         bevelSize: 0.1,
         curveSegments: 64,
     }
     lathe = new THREE.Group()
-    const difference = 0.04
     const amount = 36
     let lastOuterWall = 1
 
     for (let i = 0; i < amount; i++) {
         const value = (i + 0.5) / 2
+        let difference = value / 90
         const innerWall = lastOuterWall === 1 ? value : lastOuterWall - 0.0085
         const outerWall = lastOuterWall === 1 ? value + difference : innerWall + difference
 
@@ -239,14 +269,15 @@ const latheRender = () => {
         holePath.absarc(0, 0, innerWall, 0, Math.PI * 2, false)
         arcShape.holes.push(holePath)
         const geo = new THREE.ExtrudeGeometry(arcShape, extrudeSettings)
-        const material = new THREE.MeshStandardMaterial(materialConfig)
+        const material = new THREE.MeshLambertMaterial(materialConfig)
         const cyl = new THREE.Mesh(geo, material)
         cyl.scale.set(1, 1, difference + 0.1)
+        // cyl.position.y = i * .18;
 
         lathe.add(cyl)
         lastOuterWall = outerWall
     }
-    const scale = 20;
+    const scale = 20
     lathe.scale.set(scale, scale, scale)
     lathe.rotation.set(0, 0, 4.53)
     scene.add(lathe)
